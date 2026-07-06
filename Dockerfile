@@ -1,13 +1,15 @@
 FROM node:22-alpine AS build
+RUN npm install -g pnpm@9
 WORKDIR /app
-COPY package*.json ./
-RUN npm install
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile --ignore-scripts
 COPY . .
 ARG VITE_API_URL
 ARG VITE_AUTH_API_URL
 ENV VITE_API_URL=$VITE_API_URL
 ENV VITE_AUTH_API_URL=$VITE_AUTH_API_URL
-RUN npm run build
+ENV CI=true
+RUN pnpm run build
 
 FROM nginx:alpine
 COPY --from=build /app/dist /usr/share/nginx/html
